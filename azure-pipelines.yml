@@ -1,0 +1,117 @@
+# Node.js with React
+# Build a Node.js project that uses React.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+parameters:
+- name: deployTargets
+  displayName: Deploy only from specific branches
+  type: object
+  default:
+    - sandbox
+- name: buildArtifactsTargets
+  displayName: Build and store artifacts specific branches to be used on Azure Releases
+  type: object
+  default:
+    - main
+    - qa
+    - development
+    - sandbox
+
+variables:
+  - name: allowStageDeploy
+    value: ${{ containsValue(parameters.deployTargets, variables['Build.SourceBranchName']) }}
+  - name: allowBuildArtifacts
+    value: ${{ containsValue(parameters.buildArtifactsTargets, variables['Build.SourceBranchName']) }}
+  - group: vg-lnos-vca-stapp-sb
+
+trigger:
+  branches:
+    include:
+      - main
+      - qa
+      - development
+      - sandbox
+pr:
+  branches:
+    include:
+      - '*'
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:
+  - job: Build
+    steps:
+      - task: PowerShell@2
+        displayName: Replace token .npmrc
+        inputs:
+          targetType: 'inline'
+          script: '((Get-Content -path ".npmrc" -Raw) -replace "{{PAT_TOKEN}}", "$(PAT_TOKEN)") | Set-Content -Path ".npmrc"'
+
+      - task: NodeTool@0
+        displayName: 'Install Node.js'
+        inputs:
+          versionSpec: '18.x'
+
+      - task: npmAuthenticate@0
+        displayName: npm authenticate
+        inputs:
+          workingFile: '.npmrc'
+
+      - script: |
+          yarn install
+          yarn build
+        displayName: yarn install and build
+
+      - task : Npm@1
+        displayName: ES Lint
+        inputs:
+          command: custom
+          customCommand: run lint
+
+      - script: |
+          rm -rf build
+        displayName: Remove artifact unnecessary files
+        condition: ${{variables.allowBuildArtifacts}}
+
+      - task: ArchiveFiles@2
+        condition: ${{variables.allowBuildArtifacts}}
+        displayName: 'Archive files'
+        inputs:
+          rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+          includeRootFolder: false
+          archiveType: zip
+          archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+          replaceExistingArchive: true
+
+      - task: PublishPipelineArtifact@1
+        condition: ${{variables.allowBuildArtifacts}}
+        displayName: 'Publish Pipeline Artifact'
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+          artifact: drop
+
+- stage: Deploy
+  displayName: Deploy stage only for specific branches
+  dependsOn: Build
+  condition: and(succeeded(), ${{variables.allowStageDeploy}})
+  jobs:
+  - job: Deploy
+    steps:
+      - checkout: self
+        submodules: true
+      - task: PowerShell@2
+        displayName: Replace token .npmrc
+        inputs:
+          targetType: 'inline'
+          script: '((Get-Content -path ".npmrc" -Raw) -replace "{{PAT_TOKEN}}", "$(PAT_TOKEN)") | Set-Content -Path ".npmrc"'
+      - task: AzureStaticWebApp@0
+        inputs:
+          app_location: './'
+          app_build_command: 'yarn build'
+          output_location: './build'
+          azure_static_web_apps_api_token: $(STATIC_WEB_APP_TOKEN)

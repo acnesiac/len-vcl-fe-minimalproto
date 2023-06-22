@@ -1,0 +1,107 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "jest": true
+    },
+    "extends": [
+        "react-app",
+        "react-app/jest",
+        "plugin:react/recommended",
+        "standard-with-typescript",
+        "plugin:prettier/recommended"
+    ],
+    "overrides": [
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "ecmaVersion": "latest",
+        "sourceType": "module",
+        "project": "./tsconfig.json"
+    },
+    "plugins": [
+        "react",
+        "@typescript-eslint",
+        "prettier"
+    ],
+    "rules": {
+        "@typescript-eslint/restrict-template-expressions": "off",
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/prefer-nullish-coalescing": "off",
+        "react/react-in-jsx-scope": ["off"],
+        "react/jsx-uses-react": ["off"],
+        "react/jsx-props-no-spreading": ["off"],
+        "@typescript-eslint/array-type": [
+          "error",
+          {
+            "default": "array"
+          }
+        ],
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/prefer-for-of": "off",
+        "@typescript-eslint/strict-boolean-expressions": "off",
+        "@typescript-eslint/prefer-optional-chain": "off",
+        "@typescript-eslint/triple-slash-reference": [
+          "off",
+          {
+            "path": "always",
+            "types": "prefer-import",
+            "lib": "always"
+          }
+        ],
+        "@typescript-eslint/no-floating-promises": "off",
+        "curly": "error",
+        "eqeqeq": ["error", "smart"],
+        "guard-for-in": "error",
+        "id-blacklist": ["error", "any", "String", "string", "Boolean", "boolean"],
+        "id-match": "error",
+        "max-classes-per-file": ["error", 1],
+        "one-var": ["error", "never"],
+        "radix": "error",
+        "react/prop-types": "off",
+        "space-in-parens": ["error", "never"],
+        "spaced-comment": [
+          "error",
+          "always",
+          {
+            "markers": ["/"]
+          }
+        ],
+        "@typescript-eslint/quotes": [
+          "error",
+          "double",
+          { "allowTemplateLiterals": true }
+        ],
+        "@typescript-eslint/naming-convention": [
+          "error",
+          // variableLike
+          {
+            "selector": "variable",
+            "filter": "^I.+Service$",
+            "format": ["PascalCase"],
+            "prefix": ["I"]
+          },
+          // memberLike
+          {
+            "selector": "memberLike",
+            "modifiers": ["private"],
+            "format": ["camelCase"],
+            "leadingUnderscore": "require"
+          },
+          {
+            "selector": "memberLike",
+            "modifiers": ["protected"],
+            "format": ["camelCase"],
+            "leadingUnderscore": "require"
+          },
+          // typeLike
+          { "selector": "typeLike", "format": ["PascalCase"] },
+          { "selector": "interface", "format": ["PascalCase"], "prefix": ["I"] }
+        ],
+        "use-isnan": "error"
+    }
+}

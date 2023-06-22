@@ -1,0 +1,1 @@
+export { ConsolidatedDeal } from "./ConsolidatedDeal";
